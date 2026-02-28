@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { UserRoutes } from "./app/modules/user/user.route";
 import cors from "cors";
 import { router } from "./app/routs/index"
+import { globalErrorHandler } from "./app/middlewares/globalErrorHandlers";
 
 const app = express();
 
@@ -16,5 +17,7 @@ app.get("/", async (req: Request, res: Response) => {
     message: "Hello from floor 6th",
   });
 });
+
+app.use(globalErrorHandler)
 
 export default app;

@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { User } from "./user.model";
 import httpStatus from "http-status-codes";
 import { userService } from "./user.service";
+import { catchAsync } from "../../utils/catchAsyncHandler";
+import { sendResponse } from "../../utils/SendResponse";
 
 const createUser=async(req:Request,res:Response,next:NextFunction)=>{
     try{
@@ -16,18 +18,20 @@ const createUser=async(req:Request,res:Response,next:NextFunction)=>{
 };
 
 //get all users
-const getAllUsers=async(req:Request,res:Response)=>{
-  try{
-    const users=await userService.getAllUsers()
-    res.status(httpStatus.OK).json({
-    message: "User fetched Successfully",
-      users,
-    })
-  }catch(err){
-     res.status(httpStatus.BAD_REQUEST).json({
-      message:"something went wrong cant get user"
-  })
-}}
+const getAllUsers=catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+ const users=await userService.getAllUsers();
+ sendResponse(res,{
+  success:true,
+  statusCode:httpStatus.CREATED,
+  message:"User fetched successfully",
+  data:users.data,
+  meta:users.meta
+ })
+    // res.status(httpStatus.OK).json({
+    // message: "User fetched Successfully",
+    //   users,
+    // })
+ })
 
 export const UserControllers={
 createUser,

@@ -33,7 +33,29 @@ const getAllUsers=catchAsync(async(req:Request,res:Response,next:NextFunction)=>
     // })
  })
 
+ //update user
+ 
+ const updateUser=catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+  const userId=req.params.id;
+ 
+const payload=req.body;
+const verifiedToken = req.user;
+ const user=await userService.updateUser(userId,payload,verifiedToken);
+    sendResponse(res,{
+      success:true,
+      statusCode:httpStatus.CREATED,
+      message:"User updated successfully",
+      data:user,
+      
+    })
+    // res.status(httpStatus.CREATED).json({
+    //     message:"User created successfully",
+    //     user
+    // })
+})
+
 export const UserControllers={
 createUser,
-getAllUsers
+getAllUsers,
+updateUser
 }

@@ -19,6 +19,7 @@ export interface isAuthProvider{
 }
 
 export interface IUser{
+    _id?:string,
     name:string,
     email:string,
     password:string,
@@ -27,7 +28,7 @@ export interface IUser{
     address?:string,
     isDeleted?:boolean,
     isActive?:isActive,
-    isVerified?:string,
+    isVerified?: boolean,
     role: Role,
     auths:isAuthProvider[],
     bookings?:Types.ObjectId[],

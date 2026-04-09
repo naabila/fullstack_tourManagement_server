@@ -1,9 +1,62 @@
 import passport from "passport";
 import { envVars } from "./env";
 import { Strategy as GoogleStrategy, Profile, VerifyCallback } from "passport-google-oauth20";
+import { Strategy as LocalStrategy } from "passport-local";
+import { VerifyFunction } from "passport-local";
 import { User } from "../modules/user/user.model";
 import { Role } from "../modules/user/user.interface";
+import bcryptjs from "bcryptjs"
 
+
+//credential login
+//custom login =================
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+    },
+    (async (email: string, password: string, done) => {
+      try {
+        const isUserExist = await User.findOne({ email });
+
+        if (!isUserExist) {
+          return done(null, false, { message: "User does not exist" });
+        }
+
+        // check google auth
+        const isGoogleAuthenticated = isUserExist.auths.some(
+          (providerObjects) => providerObjects.provider === "google"
+        );
+
+        if (isGoogleAuthenticated && !isUserExist.password) {
+          return done(null, false, {
+            message:
+              "You signed up with Google. Please set a password first.",
+          });
+        }
+
+        const isPasswordMatched = await bcryptjs.compare(
+          password,
+          isUserExist.password as string
+        );
+
+        if (!isPasswordMatched) {
+          return done(null, false, {
+            message: "Password did not match",
+          });
+        }
+
+        return done(null, isUserExist);
+      } catch (error) {
+        return done(error);
+      }
+    }) as VerifyFunction
+  )
+);
+
+
+//google configuration
 passport.use(
     new GoogleStrategy(
         {

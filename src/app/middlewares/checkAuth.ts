@@ -14,7 +14,12 @@ export const checkAuth =
         throw new AppError(403, "No token found");
       }
 
-      const token = accessToken.split(" ")[1];
+      // Extract token - handle both "Bearer token" and just "token"
+      const token = accessToken.includes(" ") ? accessToken.split(" ")[1] : accessToken;
+
+      if (!token) {
+        throw new AppError(403, "Invalid token");
+      }
 
       const verifiedToken = verifyToken(
         token,

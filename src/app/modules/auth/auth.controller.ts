@@ -7,16 +7,33 @@ import AppError from "../../errorHelpers/appError";
 import { setAuthCookie } from "../../utils/setCookie";
 import { createUserToken } from "../../utils/userToken";
 import { envVars } from "../../config/env";
-const credentialLogin=catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
-    const loginInfo= await AuthService.credentialLogin(req.body);
-        setAuthCookie(res,loginInfo);
+import passport from "passport";
 
-    sendResponse(res,{
-        success:true,
-        statusCode:httpStatus.OK,
-        message:"Login successfull",
-        data:loginInfo
-    })
+const credentialLogin=catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+    passport.authenticate("local", async(err:any,user:any,info:any)=>{
+        if(err){
+            return next(new AppError(401,err))
+        }
+
+        if(!user){
+            return next(new AppError(401, info.message))
+        }
+
+        const userTokens=await createUserToken(user);
+        const {password:pass, ...rest}=user.toObject()
+        setAuthCookie(res,userTokens);
+         
+        sendResponse(res,{
+            success:true,
+            statusCode:httpStatus.OK,
+            message:"Login successfull",
+            data:{
+                accessToken: userTokens.accessToken,
+                refreshToken: userTokens.refreshToken,
+                user: rest
+            }
+        })
+    })(req,res,next)
 })
 
 //const get new access token
@@ -77,9 +94,9 @@ const googleCallbackController = catchAsync(async (req: Request, res: Response, 
         throw new AppError(httpStatus.NOT_FOUND, "User Not Found")
     }
 
-    const tokenInfo = createUserToken(user)
+    const tokenInfo = await createUserToken(user)
 
-    setAuthCookie(res, tokenInfo)
+    setAuthCookie(res,tokenInfo)
 
    
 
